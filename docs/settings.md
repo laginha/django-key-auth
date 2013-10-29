@@ -1,5 +1,8 @@
 # Settings
 
+All this settings must go before `INSTALLED_APPS`
+
+
 ### KEY\_PARAMETER_NAME 
 
 The name of the parameter used for the key token. Defaults to `key`.
