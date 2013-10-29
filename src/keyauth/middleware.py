@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # encoding: utf-8
 from django.contrib.auth import authenticate
-from .utils import is_valid_key
-from .consts import KEY_PARAMETER_NAME, HttpResponse401
+from .utils import is_valid_key, HttpResponse401
+from .consts import KEY_PARAMETER_NAME
 
 
 class KeyRequiredMiddleware(object):

@@ -21,19 +21,10 @@ MIDDLEWARE_CLASSES = (
 )
 ```
 
-If you wish all your views to be protected, use the `KeyRequiredMiddleware`. However, through this middleware it is not possible to require a key that belongs to a `Group` or has `Permission`. 
-
-```python
-MIDDLEWARE_CLASSES = (
-    ...
-    'keyauth.middleware.KeyRequiredMiddleware',
-)
-```
+[More settings!](settings.md))
 
 
-## Decorator
-
-To protect a specific view use the `key_required` decorator
+## Require key
 
 ```python
 from keyauth.decorators import key_required
@@ -43,11 +34,11 @@ def view(request):
     ...
 ```
 
-When requesting the resource, the app looks for the `key` parameter in the *HTTP* request to proceed with the authentication
+When requesting the resource, the app looks for the `key` parameter in the _HTTP_ request to proceed with the authentication
 
     http://example.com/foo/1/?key=somekey
 
-You can change the name of the parameter through the `KEY_PARAMETER_NAME` setting (more about keyauth settings [here](settings.md)).
+You can change the name of the parameter through the `KEY_PARAMETER_NAME` setting.
 
 ### Require key that belongs to a Group
 
@@ -75,3 +66,4 @@ The client is authorized to access the view:
 
 1. if there is a `Consumer` with the client's *IP* that is explicitly allowed to use the given key.
 2. if there is no `Consumer` with a different *IP* explicitly allowed to use the given key.
+3. if given key has necessary permission or belongs to a group (if required) 

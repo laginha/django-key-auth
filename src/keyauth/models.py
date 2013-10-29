@@ -20,7 +20,6 @@ class Key(models.Model):
     """
     groups          = models.ManyToManyField(Group)
     permissions     = models.ManyToManyField(Permission)
-    
     user            = models.ForeignKey(User, related_name='keys')
     # The key token. 
     token           = models.CharField(default=generate_token, max_length=100, unique=True)
@@ -32,16 +31,35 @@ class Key(models.Model):
     last_used       = models.DateTimeField(auto_now=True)
     
     def extend_expiration_date(self, years=1):
+        """
+        Extend expiration date a number of given years
+        """
         self.expiration_date = years_from_now(years)
+        self.save()
+        
+    def refresh_token(self, pattern=KEY_PATTERN):
+        """
+        Replace token with a new generated one
+        """
+        self.token = generate_token(pattern)
         self.save()
     
     def add_consumer(self, ip):
+        """
+        Add consumer based on its ip address
+        """
         Consumer.objects.get_or_create(key=self, ip=ip)
     
     def clear_consumers(self):
+        """
+        Remove all consumers
+        """
         Consumer.objects.filter(key=self).delete()
     
     def has_perm(self, perm):
+        """
+        Checks if key has the given django's auth Permission
+        """
         if '.' in perm:
             app_label, codename = perm.split('.')
             permissions = self.permissions.filter(
@@ -56,6 +74,9 @@ class Key(models.Model):
         return permissions.exists() or groups.exists()         
     
     def belongs_to_group(self, name):
+        """
+        Checks if key belongs to a django's auth Group
+        """
         return self.groups.filter(name=name).exists()
     
     def __unicode__(self):

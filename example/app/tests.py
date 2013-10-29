@@ -10,7 +10,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.test.utils import override_settings
 from django.conf import settings
 from keyauth.models import Key, Consumer
-from keyauth.consts import HttpResponse401, KEY_AUTH_401_CONTENT, KEY_EXPIRATION_DELTA, KEY_AUTH_401_CONTENT_TYPE
+from keyauth.consts import KEY_AUTH_401_CONTENT, KEY_EXPIRATION_DELTA, KEY_AUTH_401_CONTENT_TYPE
 from keyauth.consts import KEY_PARAMETER_NAME, KEY_PATTERN, KEY_AUTH_401_TEMPLATE, KEY_LAST_USED_UPDATE
 
 

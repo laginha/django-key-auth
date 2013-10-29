@@ -8,7 +8,7 @@ def view(request):
     ...
 ```
 
-[See the docs!](docs/usage.md)
+[Read the docs!](docs/index.md)
 
 
 ## Install
@@ -22,7 +22,7 @@ def view(request):
 - Authentication middleware.
 - Authentication backend.
 - Django's Permissions and Groups integrated.
-- Key usage white list based on client's _IP_ address.
+- Per key black and white-lists based on client's _IP_ address.
 
 
 ## ToDo

@@ -42,6 +42,14 @@ Extend expiration date a number of given years (defaults to 1).
 key.extend_expiration_date(years=1)
 ```
 
+### refresh_token
+
+Replace `token` with a new generated one, according to a given pattern that defaults to `KEY_PATTERN` setting.
+
+```python
+key.refresh_token(pattern='[0-9]{3,4}')
+```
+
 
 ## Attributes
 
