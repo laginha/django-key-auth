@@ -36,7 +36,7 @@ The keys to `KEY_AUTH_401_TEMPLATE` are the arguments expected for `django.short
 Content type for the Not Authorized response
 
 ```python
-KEY_AUTH_401_CONTENT_TYPE = 'application/javascript; charset=utf-8' #JSON
+KEY_AUTH_401_CONTENT_TYPE = 'application/json; charset=utf-8' #JSON
 KEY_AUTH_401_CONTENT_TYPE = 'application/javascript; charset=utf-8' #JSONP
 ```
 

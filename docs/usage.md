@@ -21,7 +21,7 @@ MIDDLEWARE_CLASSES = (
 )
 ```
 
-[More settings!](settings.md))
+[More settings!](settings.md)
 
 
 ## Require key

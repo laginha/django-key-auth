@@ -67,7 +67,7 @@ Foreign key to django's `User`.
 
 ### token
 
-The key token. 
+The key's string token. 
 
 ### activation_date
 
@@ -75,8 +75,8 @@ The date of creation of the key.
 
 ### expiration_date 
 
-The date from which the key will expire, thus no longer valid (by default, one year after creation).
+The date from which the key will no longer be valid (by default, one year after creation).
 
 ### last_used
 
-The last time the key was used to access a resource, if `KEY_LAST_USED_UPDATE` set to `True` (default behavior).
+The datetime of the last access using the key, if `KEY_LAST_USED_UPDATE` set to `True` (default behavior).

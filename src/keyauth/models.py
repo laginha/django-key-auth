@@ -25,7 +25,7 @@ class Key(models.Model):
     token           = models.CharField(default=generate_token, max_length=100, unique=True)
     # The date of creation of the key.
     activation_date = models.DateField(auto_now_add=True)
-    # The date from which the key will expire, thus no longer valid (by default, one year after creation).
+    # The date from which the key will no longer be valid (by default, one year after creation).
     expiration_date = models.DateField(default=years_from_now)
     # The last time the key was used to access a resource.
     last_used       = models.DateTimeField(auto_now=True)
