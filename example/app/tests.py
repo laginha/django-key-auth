@@ -5,12 +5,23 @@ Run test:
 '''
 from django.test.client import Client, RequestFactory
 from django.test import TestCase
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group, Permission, _user_has_perm
+from django.contrib.contenttypes.models import ContentType
 from django.test.utils import override_settings
 from django.conf import settings
 from keyauth.models import Key, Consumer
 from keyauth.consts import HttpResponse401, KEY_AUTH_401_CONTENT, KEY_EXPIRATION_DELTA, KEY_AUTH_401_CONTENT_TYPE
 from keyauth.consts import KEY_PARAMETER_NAME, KEY_PATTERN, KEY_AUTH_401_TEMPLATE, KEY_LAST_USED_UPDATE
+
+
+print "Settings:"
+print "KEY_PARAMETER_NAME =", KEY_PARAMETER_NAME
+print "KEY_AUTH_401_CONTENT =", KEY_AUTH_401_CONTENT
+print "KEY_EXPIRATION_DELTA =", KEY_EXPIRATION_DELTA
+print "KEY_AUTH_401_CONTENT_TYPE =", KEY_AUTH_401_CONTENT_TYPE
+print "KEY_PATTERN =", KEY_PATTERN
+print "KEY_AUTH_401_TEMPLATE =", KEY_AUTH_401_TEMPLATE
+print "KEY_LAST_USED_UPDATE =", KEY_LAST_USED_UPDATE
 
 
 MIDDLEWARE_CLASSES = getattr(settings, 'MIDDLEWARE_CLASSES') + (
@@ -28,10 +39,23 @@ class KeyAuthTest(TestCase):
         response = Client().get(url, kwargs)
         self.assertEqual( response.status_code, status )
 
+    def test_perm(self):
+        self.assertStatus( '/key_required_with_perm', 401, {KEY_PARAMETER_NAME: self.key.token} )
+        content_type = ContentType.objects.get_for_model(User)
+        permission = Permission.objects.create(codename='can_read', content_type=content_type)        
+        self.key.permissions.add( permission )
+        self.assertStatus( '/key_required_with_perm', 200, {KEY_PARAMETER_NAME: self.key.token} )
+
+    def test_group(self):
+        self.assertStatus( '/key_required_with_group', 401, {KEY_PARAMETER_NAME: self.key.token} )
+        group = Group.objects.create(name='scopename')
+        self.key.groups.add( group )
+        self.assertStatus( '/key_required_with_group', 200, {KEY_PARAMETER_NAME: self.key.token} )
+
     def test_KEY_PARAMETER_NAME(self):
-        token_name = KEY_PARAMETER_NAME + 'foo'
+        key_parameter_name = KEY_PARAMETER_NAME + 'foo'
         self.assertStatus( '/key_required', 200, {KEY_PARAMETER_NAME: self.key.token} )
-        self.assertStatus( '/key_required', 401, {token_name: self.key.token} )
+        self.assertStatus( '/key_required', 401, {key_parameter_name: self.key.token} )
     
     def test_KEY_AUTH_401_CONTENT(self):
         response = Client().get('/key_required')
@@ -65,7 +89,7 @@ class KeyAuthTest(TestCase):
 
     def test_KEY_LAST_USED_UPDATE(self):
         last_used = self.key.last_used
-        self.assertStatus( '/key_required', 200, {'key': self.key.token} )
+        self.assertStatus( '/key_required', 200, {KEY_PARAMETER_NAME: self.key.token} )
         key = Key.objects.get(id=self.key.id)
         if KEY_LAST_USED_UPDATE:
             self.assertTrue( last_used < key.last_used )
@@ -76,27 +100,26 @@ class KeyAuthTest(TestCase):
 
     def test_key_required(self):
         self.assertStatus( '/key_required', 401 )
-        self.assertStatus( '/key_required', 200, {'key': self.key.token} )
+        self.assertStatus( '/key_required', 200, {KEY_PARAMETER_NAME: self.key.token} )
         self.assertStatus( '/no_key_required', 200 )
     
     @override_settings(MIDDLEWARE_CLASSES=MIDDLEWARE_CLASSES)
     def test_KeyRequiredMiddleware(self):
         self.assertStatus( '/key_required', 401 )
-        self.assertStatus( '/key_required', 200, {'key': self.key.token} )
+        self.assertStatus( '/key_required', 200, {KEY_PARAMETER_NAME: self.key.token} )
         self.assertStatus( '/no_key_required', 401 )
     
     def test_authorizarion_logic(self):
         consumer = Consumer.objects.get_or_create(key=self.key, ip='127.0.0.1')[0]
         self.assertStatus( '/key_required', 401 )
-        self.assertStatus( '/key_required', 200, {'key': self.key.token} )
+        self.assertStatus( '/key_required', 200, {KEY_PARAMETER_NAME: self.key.token} )
         self.assertStatus( '/no_key_required', 200 )
         consumer.ip = '1.1.1.1'
         consumer.save()
         self.assertStatus( '/key_required', 401 )
-        self.assertStatus( '/key_required', 401, {'key': self.key.token} )
+        self.assertStatus( '/key_required', 401, {KEY_PARAMETER_NAME: self.key.token} )
         self.assertStatus( '/no_key_required', 200 )
         consumer.delete()
         self.assertStatus( '/key_required', 401 )
-        self.assertStatus( '/key_required', 200, {'key': self.key.token} )
-        self.assertStatus( '/no_key_required', 200 )
-        
+        self.assertStatus( '/key_required', 200, {KEY_PARAMETER_NAME: self.key.token} )
+        self.assertStatus( '/no_key_required', 200 )    
