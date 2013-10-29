@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group, Permission
 from django.conf import settings
 from .consts import KEY_EXPIRATION_DELTA, KEY_PATTERN
 import datetime, rstr
@@ -18,6 +18,9 @@ class Key(models.Model):
     """
     Key for resource/view access and authentication
     """
+    groups          = models.ManyToManyField(Group)
+    permissions     = models.ManyToManyField(Permission)
+    
     user            = models.ForeignKey(User, related_name='keys')
     # The key token. 
     token           = models.CharField(default=generate_token, max_length=100, unique=True)
@@ -28,6 +31,33 @@ class Key(models.Model):
     # The last time the key was used to access a resource.
     last_used       = models.DateTimeField(auto_now=True)
     
+    def extend_expiration_date(self, years=1):
+        self.expiration_date = years_from_now(years)
+        self.save()
+    
+    def add_consumer(self, ip):
+        Consumer.objects.get_or_create(key=self, ip=ip)
+    
+    def clear_consumers(self):
+        Consumer.objects.filter(key=self).delete()
+    
+    def has_perm(self, perm):
+        if '.' in perm:
+            app_label, codename = perm.split('.')
+            permissions = self.permissions.filter(
+                content_type__app_label = app_label, 
+                codename = codename)
+            groups = self.groups.filter(
+                permissions__content_type__app_label = app_label,
+                permissions__codename = codename )
+        else:
+            permissions = self.permissions.filter(codename = perm)
+            groups = self.groups.filter(permissions__codename = perm)
+        return permissions.exists() or groups.exists()         
+    
+    def belongs_to_group(self, name):
+        return self.groups.filter(name=name).exists()
+    
     def __unicode__(self):
         return u"%s" %self.token
 
@@ -35,10 +65,6 @@ class Key(models.Model):
 class Consumer(models.Model):
     """
     Web client allowed (or not) to use a key
-    
-    The client is authorized to access the view:
-        - if there is a `Consumer` with the client's *IP* that is explicitly allowed to use the given key,
-        - if there is no `Consumer` with a different *IP* explicitly allowed to use the given key
     """
     key     = models.ForeignKey(Key)
     # The *IP* address of the consumer.

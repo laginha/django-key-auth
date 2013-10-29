@@ -4,21 +4,29 @@ from .models import Consumer
 from .consts import KEY_LAST_USED_UPDATE
 
 
-def is_valid_key(request):
+def is_valid_key(request, group=None, perm=None):
     '''
     Validate the given key
     '''
-    if request.user.is_authenticated():
-        if request.key and is_valid_consumer(request):
+    no_restrictions = lambda: not group and not perm
+    key_in_group = lambda: group and request.key.belongs_to_group( group )
+    key_has_perm = lambda: perm and request.key.has_perm( perm )
+
+    if request.user.is_authenticated() and is_valid_consumer(request):
+        if no_restrictions() or key_in_group() or key_has_perm():
             if KEY_LAST_USED_UPDATE:
                 request.key.save()
-            return True
+            return True      
     return False
 
 
 def is_valid_consumer(request):
     '''
     Validate the client for view/resource access with the given key
+    
+    The client is authorized to access the view:
+        - if there is a `Consumer` with the client's *IP* that is explicitly allowed to use the given key,
+        - if there is no `Consumer` with a different *IP* explicitly allowed to use the given key
     '''
     try:
         ip = request.META.get('REMOTE_ADDR', None)
