@@ -10,7 +10,7 @@ setup(
     description      = "Key based authentication for Django",
     packages         = find_packages(where='src'),
     package_dir      = {'': 'src'},
-    install_requires = ['django', 'rstr'],
+    install_requires = ['django', 'rstr', 'django-model-utils'],
     extras_require   = {},
     zip_safe         = False,
 )

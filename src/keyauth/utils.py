@@ -3,24 +3,31 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 from .models import Consumer
-from .consts import KEY_LAST_USED_UPDATE, KEY_AUTH_401_TEMPLATE
-from .consts import KEY_AUTH_401_CONTENT_TYPE, KEY_AUTH_401_CONTENT
+from .consts import KEY_LAST_USED_UPDATE, KEY_AUTH_401_TEMPLATE, KEY_AUTH_401_CONTENT_TYPE, KEY_AUTH_401_CONTENT
+from .consts import KEY_AUTH_403_TEMPLATE, KEY_AUTH_403_CONTENT_TYPE, KEY_AUTH_403_CONTENT
+from .exceptions import AccessForbidden, AccessUnauthorized
 
 
-def is_valid_key(request, group=None, perm=None):
+def validate_key(request, group=None, perm=None):
     """
     Validate the given key
     """
-    no_restrictions = lambda: not group and not perm
-    key_in_group = lambda: group and request.key.belongs_to_group( group )
-    key_has_perm = lambda: perm and request.key.has_perm( perm )
-
+    def update_last_access():
+        if KEY_LAST_USED_UPDATE:
+            request.key.save()
+    
     if request.user.is_authenticated() and is_valid_consumer(request):
-        if no_restrictions() or key_in_group() or key_has_perm():
-            if KEY_LAST_USED_UPDATE:
-                request.key.save()
-            return True      
-    return False
+        if not group and not perm:
+            return update_last_access()
+        elif group:
+            if request.key.belongs_to_group( group ):
+                return update_last_access()
+            raise AccessForbidden
+        elif perm:
+            if request.key.has_perm( perm ):
+                return update_last_access()
+            raise AccessForbidden
+    raise AccessUnauthorized
 
 
 def is_valid_consumer(request):
@@ -39,13 +46,25 @@ def is_valid_consumer(request):
         return not consumers.exists()
 
 
+def AccessFailedResponse(request, template, content, content_type, status):
+    if template:
+        content_type = template.pop('content_type', content_type)
+        return render(request, status=status, content_type=content_type, **template)
+    return HttpResponse(content, status=status, content_type=content_type)
+
+
 def HttpResponse401(request, template=KEY_AUTH_401_TEMPLATE,
 content=KEY_AUTH_401_CONTENT, content_type=KEY_AUTH_401_CONTENT_TYPE):
     """
-    Not authorized HTTP response
+    HTTP response for not-authorized access (status code 403)
     """
-    if template:
-        content_type = template.pop('content_type', content_type)
-        return render(request, status=401, content_type=content_type, **template)
-    return HttpResponse(content, status=401, content_type=content_type)
+    return AccessFailedResponse(request, template, content, content_type, status=401)
 
+   
+def HttpResponse403(request, template=KEY_AUTH_403_TEMPLATE,
+content=KEY_AUTH_403_CONTENT, content_type=KEY_AUTH_403_CONTENT_TYPE):
+    """
+    HTTP response for forbidden access (status code 403)
+    """
+    return AccessFailedResponse(request, template, content, content_type, status=403)
+    

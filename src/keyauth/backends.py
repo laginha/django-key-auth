@@ -10,7 +10,8 @@ class KeyAuthBackend(object):
     """
     def authenticate(self, token=None):
         keys = Key.objects.filter(token=token).select_related('user')
-        return keys[0] if keys.exists() else None
+        if keys and not keys[0].has_expired():
+            return keys[0]
         
     def get_user(self, user_id):
         try:

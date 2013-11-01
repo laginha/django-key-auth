@@ -5,6 +5,7 @@ Key based authentication for Django
 ```python
 @key_required()
 def view(request):
+    key = request.key
     ...
 ```
 

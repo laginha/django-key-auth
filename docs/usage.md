@@ -31,6 +31,7 @@ from keyauth.decorators import key_required
 
 @key_required()
 def view(request):
+    key = request.key
     ...
 ```
 

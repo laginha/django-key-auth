@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
-from .utils import is_valid_key, HttpResponse401
+from .utils import validate_key, HttpResponse401, HttpResponse403
+from .exceptions import AccessUnauthorized, AccessForbidden
 
 def key_required(group=None, perm=None):
     """
@@ -8,8 +9,12 @@ def key_required(group=None, perm=None):
     """
     def decorator(f):
         def wrapper(request, *args, **kwargs):
-            if is_valid_key( request, group, perm ):
+            try:
+                validate_key( request, group, perm )
                 return f(request, *args, **kwargs)
-            return HttpResponse401( request )
+            except AccessUnauthorized:
+                return HttpResponse401( request )
+            except AccessForbidden:
+                return HttpResponse403( request )
         return wrapper 
     return decorator

@@ -1,13 +1,17 @@
 from django.db import models
 from django.contrib.auth.models import User, Group, Permission
 from django.conf import settings
+from model_utils.managers import PassThroughManager
 from .consts import KEY_EXPIRATION_DELTA, KEY_PATTERN
+from .managers import ConsumerQuerySet, KeyQuerySet
 import datetime, rstr
 
-
+def timedelta_years(years):
+    return datetime.timedelta(days=365*years)
+    
 def years_from_now(num=KEY_EXPIRATION_DELTA):
     today = datetime.datetime.today()
-    delta = datetime.timedelta(days=365*num)
+    delta = timedelta_years(num)
     return (today + delta).date()
     
 def generate_token(pattern=KEY_PATTERN):
@@ -18,6 +22,8 @@ class Key(models.Model):
     """
     Key for resource/view access and authentication
     """
+    objects = PassThroughManager.for_queryset_class(KeyQuerySet)()
+    
     groups          = models.ManyToManyField(Group)
     permissions     = models.ManyToManyField(Permission)
     user            = models.ForeignKey(User, related_name='keys')
@@ -29,12 +35,19 @@ class Key(models.Model):
     expiration_date = models.DateField(default=years_from_now)
     # The last time the key was used to access a resource.
     last_used       = models.DateTimeField(auto_now=True)
+
+    def has_expired(self):
+        """
+        Checks if key has expired its validation date
+        """
+        return datetime.date.today() > self.expiration_date
     
     def extend_expiration_date(self, years=1):
         """
         Extend expiration date a number of given years
         """
-        self.expiration_date = years_from_now(years)
+        delta = timedelta_years(years)
+        self.expiration_date = self.expiration_date + delta
         self.save()
         
     def refresh_token(self, pattern=KEY_PATTERN):
@@ -54,7 +67,13 @@ class Key(models.Model):
         """
         Remove all consumers
         """
-        Consumer.objects.filter(key=self).delete()
+        self.consumers.all().delete()
+    
+    def get_consumers(self):
+        """
+        Get all consumers with key
+        """
+        return self.consumers.all()
     
     def has_perm(self, perm):
         """
@@ -87,7 +106,9 @@ class Consumer(models.Model):
     """
     Web client allowed (or not) to use a key
     """
-    key     = models.ForeignKey(Key)
+    objects = PassThroughManager.for_queryset_class(ConsumerQuerySet)()
+    
+    key     = models.ForeignKey(Key, related_name="consumers")
     # The *IP* address of the consumer.
     ip      = models.IPAddressField(blank=True)
     # If the consumer is allowed or not to use the key token (defaults to *True*).

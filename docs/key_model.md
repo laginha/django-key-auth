@@ -1,5 +1,41 @@
 # Key Model
 
+
+## Attributes
+
+### groups
+
+Many to many relation to django's `Group`.
+
+### permissions
+
+Many to many relation to django's `Permisson`.
+
+### user
+
+Foreign key to django's `User`.
+
+### consumers
+
+Related field for `Consumers` with this `Key`.
+
+### token
+
+The key's string token. 
+
+### activation_date
+
+The date of creation of `Key`.
+
+### expiration_date 
+
+The date from which the key will no longer be valid (by default, one year after creation).
+
+### last_used
+
+The datetime of the last access using the key, if `KEY_LAST_USED_UPDATE` set to `True` (default behavior).
+
+
 ## Methods
 
 ### belongs_to\_group
@@ -34,6 +70,14 @@ Remove all consumers. This means there is no longer usage restrictions and every
 key.clear_consumers()
 ```
 
+### get_consumers
+
+Get all consumers for this `key`.
+
+```python
+key.get_consumers() #the same as key.consumers.all()
+```
+
 ### extend_expiration\_date
 
 Extend expiration date a number of given years (defaults to 1).
@@ -51,32 +95,19 @@ key.refresh_token(pattern='[0-9]{3,4}')
 ```
 
 
-## Attributes
+## QuerySet Manager
 
-### groups
+### expired
 
-Many to many relation to django's `Group`.
+Filter keys that have expired (no longer valid).
 
-### permissions
+```python
+Key.objects.expired()
+```
 
-Many to many relation to django's `Permisson`.
+### not_expired
 
-### user
+Filter keys that have yet to expired (still valid).
 
-Foreign key to django's `User`.
-
-### token
-
-The key's string token. 
-
-### activation_date
-
-The date of creation of the key.
-
-### expiration_date 
-
-The date from which the key will no longer be valid (by default, one year after creation).
-
-### last_used
-
-The datetime of the last access using the key, if `KEY_LAST_USED_UPDATE` set to `True` (default behavior).
+```python
+Key.objects.not_expired()
