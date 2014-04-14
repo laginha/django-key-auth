@@ -51,6 +51,8 @@ def view(request):
     ...
 ```
 
+For more about groups, [read the Django docs](https://docs.djangoproject.com/en/dev/topics/auth/default/#permissions-and-authorization)
+
 ### Require key that has permission
 
 ```python
@@ -60,6 +62,8 @@ from keyauth.decorators import key_required
 def view(request):
     ...
 ```
+
+For more abour permissions, [read the Django docs](https://docs.djangoproject.com/en/1.3/topics/auth/#permissions)
 
 ## Authorizarion
 

@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # encoding: utf-8
-from django.contrib.auth import authenticate
-from .utils import validate_key, HttpResponse401, HttpResponse403
-from .consts import KEY_PARAMETER_NAME
+from django.contrib.auth.models import AnonymousUser
+from django.utils.functional import SimpleLazyObject
+from .utils import validate_key, get_key, HttpResponse401, HttpResponse403
 from .exceptions import AccessUnauthorized, AccessForbidden
 
 
@@ -23,8 +23,6 @@ class KeyAuthenticationMiddleware(object):
     """
     Middleware to authenticate user through given key
     """
-    def process_request(self, request):        
-        key = authenticate(token=request.REQUEST.get(KEY_PARAMETER_NAME))
-        request.key = key
-        if key:
-            request.user = key.user
+    def process_request(self, request): 
+        request.key  = SimpleLazyObject(lambda: get_key(request))
+        request.user = SimpleLazyObject(lambda: request.key.user if request.key else AnonymousUser())

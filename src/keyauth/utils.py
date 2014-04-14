@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 # encoding: utf-8
+from django.contrib.auth import authenticate
 from django.shortcuts import render
 from django.http import HttpResponse
 from .models import Consumer
 from .consts import KEY_LAST_USED_UPDATE, KEY_AUTH_401_TEMPLATE, KEY_AUTH_401_CONTENT_TYPE, KEY_AUTH_401_CONTENT
-from .consts import KEY_AUTH_403_TEMPLATE, KEY_AUTH_403_CONTENT_TYPE, KEY_AUTH_403_CONTENT
+from .consts import KEY_AUTH_403_TEMPLATE, KEY_AUTH_403_CONTENT_TYPE, KEY_AUTH_403_CONTENT, KEY_PARAMETER_NAME
 from .exceptions import AccessForbidden, AccessUnauthorized
 
 
@@ -45,6 +46,10 @@ def is_valid_consumer(request):
         consumers = Consumer.objects.filter(key=request.key, allowed=True)
         return not consumers.exists()
 
+
+def get_key(request):
+    return authenticate(token=request.REQUEST.get(KEY_PARAMETER_NAME))
+    
 
 def AccessFailedResponse(request, template, content, content_type, status):
     if template:

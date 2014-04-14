@@ -16,3 +16,8 @@ def view_key_required_with_group(request):
 @key_required(perm='auth.can_read')
 def view_key_required_with_perm(request):
     return HttpResponse('success')
+
+
+# @key_required(mobile=True, os=r"Android")
+# @key_required(mobile=True, tablet=True, os=r"Android")
+
