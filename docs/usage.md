@@ -65,6 +65,16 @@ def view(request):
 
 For more abour permissions, [read the Django docs](https://docs.djangoproject.com/en/1.3/topics/auth/#permissions)
 
+### Require key of a certain type
+
+```python
+from keyauth.decorators import key_required
+
+@key_required(keytype='browser')
+def view(request):
+    ...
+```
+
 ## Authorizarion
 
 The client is authorized to access the view:

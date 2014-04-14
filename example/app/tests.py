@@ -12,7 +12,7 @@ from django.conf import settings
 from keyauth.models import Key, Consumer
 from keyauth.consts import KEY_AUTH_401_CONTENT, KEY_EXPIRATION_DELTA, KEY_AUTH_401_CONTENT_TYPE
 from keyauth.consts import KEY_PARAMETER_NAME, KEY_PATTERN, KEY_AUTH_401_TEMPLATE, KEY_LAST_USED_UPDATE
-from keyauth.consts import KEY_AUTH_403_CONTENT, KEY_AUTH_403_CONTENT_TYPE, KEY_AUTH_403_TEMPLATE
+from keyauth.consts import KEY_AUTH_403_CONTENT, KEY_AUTH_403_CONTENT_TYPE, KEY_AUTH_403_TEMPLATE, KEY_TYPES
 
 
 print "Settings:"
@@ -26,6 +26,7 @@ print "KEY_AUTH_401_TEMPLATE =", KEY_AUTH_401_TEMPLATE
 print "KEY_AUTH_403_CONTENT =", KEY_AUTH_403_CONTENT
 print "KEY_AUTH_403_CONTENT_TYPE =", KEY_AUTH_403_CONTENT_TYPE
 print "KEY_AUTH_403_TEMPLATE =", KEY_AUTH_403_TEMPLATE
+print "KEY_TYPES = ", KEY_TYPES
 
 
 MIDDLEWARE_CLASSES = getattr(settings, 'MIDDLEWARE_CLASSES') + (
@@ -100,6 +101,13 @@ class KeyAuthTest(TestCase):
             self.assertEqual( self.key.consumers.count(), i )
         self.key.clear_consumers()
         self.assertEqual( self.key.consumers.count(), 0 )
+        
+    def test_is_type(self):
+        self.assertFalse( self.key.is_type('server') )
+        self.assertFalse( self.key.is_type('browser') )
+        key  = Key.objects.create(user=self.user, key_type='B')
+        self.assertFalse( key.is_type('server') )
+        self.assertTrue( key.is_type('browser') )
   
     #
     # TEST PERMISSIONS
@@ -141,6 +149,12 @@ class KeyAuthTest(TestCase):
         group = Group.objects.create(name='scopename')
         self.key.groups.add( group )
         self.assertStatus( '/key_required_with_group', 200, {KEY_PARAMETER_NAME: self.key.token} )
+
+    def test_keytype(self):
+        self.assertStatus( '/key_required_with_keytype', 401 )
+        self.assertStatus( '/key_required_with_keytype', 403, {KEY_PARAMETER_NAME: self.key.token} )
+        key  = Key.objects.create(user=self.user, key_type='B')
+        self.assertStatus( '/key_required_with_keytype', 200, {KEY_PARAMETER_NAME: key.token} )
 
     #
     # Managers
@@ -233,6 +247,10 @@ class KeyAuthTest(TestCase):
         else:
             self.assertEqual( key.activation_date, key.last_used.date() )
             self.assertEqual( last_used, key.last_used )
+            
+    def test_KEY_TYPES(self):
+        for typechar,typename in KEY_TYPES:
+            self.key.is_type( typename )
     
     @override_settings(MIDDLEWARE_CLASSES=MIDDLEWARE_CLASSES)
     def test_KeyRequiredMiddleware(self):

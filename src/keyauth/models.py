@@ -2,7 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User, Group, Permission
 from django.conf import settings
 from model_utils.managers import PassThroughManager
-from .consts import KEY_EXPIRATION_DELTA, KEY_PATTERN
+from .consts import KEY_EXPIRATION_DELTA, KEY_PATTERN, KEY_TYPES
 from .managers import ConsumerQuerySet, KeyQuerySet
 import datetime, rstr
 
@@ -16,53 +16,6 @@ def years_from_now(num=KEY_EXPIRATION_DELTA):
     
 def generate_token(pattern=KEY_PATTERN):
     return rstr.xeger( pattern )
-
-
-# class MobileOS(models.Model):
-#     android = models.BooleanField(default=True)
-#     ios     = models.BooleanField(default=True)
-#     windows = models.BooleanField(default=True)
-#     
-#     def matches(self, request):
-#         if self.android and self.ios and self.windows:
-#             return True
-#         elif self.android and agent.detect_android(request):
-#             return True
-#         elif self.ios and agent.detect_ios(request):
-#             return True
-#         elif self.windows and agent.detect_windows_phone(request):
-#             return True
-#         return False
-# 
-# 
-# class Device(models.Model):
-#     desktop    = models.BooleanField(default=True)  
-#     tablet     = models.BooleanField(default=True)
-#     smartphone = models.BooleanField(default=True)
-#     
-#     mobile_os  = models.ForeignKey(MobileOS, default=MobileOS.objects.create, related_name='devices')
-#     
-#     @property
-#     def mobile(self):
-#         return self.tablet and self.smartphone
-#         
-#     def matches(self, request):
-#         if self.tablet and self.smartphone and self.desktop:
-#             return True
-#         elif self.tablet and agent.detect_tier_tablet(request):
-#             return self.mobile_os.matches(request)
-#         elif self.smartphone and agent.detect_tier_iphone(request):
-#             return self.mobile_os.matches(request)
-#         elif self.desktop:
-#             mobile = agent.detect_tier_tablet(request) or agent.detect_tier_iphone(request)
-#             return not mobile
-#         return False
-#         
-# 
-# 
-# class Type(models.Model):
-#     browser = models.BooleanField(default=True)   
-#     server  = models.BooleanField(default=True)
     
     
 class Key(models.Model):
@@ -85,24 +38,15 @@ class Key(models.Model):
     expiration_date = models.DateField(default=years_from_now)
     # The last time the key was used to access a resource.
     last_used       = models.DateTimeField(auto_now=True)
+    # Type of key (by default, is either Server ou Browser)
+    key_type        = models.CharField(max_length=1, choices=KEY_TYPES)
     
-#     key_type = models.ForeignKey(Type, default=Type.objects.create, related_name='keys')
-#     device   = models.ForeignKey(Device, default=Device.objects.create, related_name='keys')
-#         
-#     def matches(self, request):
-#         if self.type.browser:
-#             return agent.detect_browser(request)
-#         elif self.type.server:
-#             return self.devices.matches(request)
-#         return False
-#     
-#     def set_type_settings(self, **kwargs):
-#         self.key_type = Type.objects.get_or_create(**kwargs)
-#         self.key_type.save()
-#     
-#     def set_device_settings(self, **kwargs):
-#         self.device = Device.objects.get_or_create(**kwargs)
-#         self.device.save()
+    def is_type(self, typename):
+        def get_typechar(name):
+            for a,b in KEY_TYPES:
+                if b==name: return a
+        
+        return get_typechar( typename ) == self.key_type
     
     def has_expired(self):
         """

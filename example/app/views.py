@@ -17,7 +17,6 @@ def view_key_required_with_group(request):
 def view_key_required_with_perm(request):
     return HttpResponse('success')
 
-
-# @key_required(mobile=True, os=r"Android")
-# @key_required(mobile=True, tablet=True, os=r"Android")
-
+@key_required(keytype='browser')
+def view_key_required_with_keytype(request):
+    return HttpResponse('success')

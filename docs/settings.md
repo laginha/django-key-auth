@@ -88,3 +88,11 @@ Update `last_used` model attribute for the given key. Defaults to `True`.
 ```python
 KEY_LAST_USED_UPDATE = False
 ```
+
+### KEY_TYPES
+
+The choices for the type of key. Default to `(('S', 'server'), ('B', 'browser'))`.
+
+```python
+KEY_TYPES = (('M', 'Mobile'), ('S', 'server'), ('B', 'browser'))
+````

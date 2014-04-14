@@ -9,7 +9,7 @@ from .consts import KEY_AUTH_403_TEMPLATE, KEY_AUTH_403_CONTENT_TYPE, KEY_AUTH_4
 from .exceptions import AccessForbidden, AccessUnauthorized
 
 
-def validate_key(request, group=None, perm=None):
+def validate_key(request, group=None, perm=None, keytype=None):
     """
     Validate the given key
     """
@@ -18,16 +18,18 @@ def validate_key(request, group=None, perm=None):
             request.key.save()
     
     if request.user.is_authenticated() and is_valid_consumer(request):
-        if not group and not perm:
+        if not group and not perm and not keytype:
             return update_last_access()
+        elif keytype:
+            if request.key.is_type( keytype ):
+                return update_last_access()
         elif group:
             if request.key.belongs_to_group( group ):
                 return update_last_access()
-            raise AccessForbidden
         elif perm:
             if request.key.has_perm( perm ):
                 return update_last_access()
-            raise AccessForbidden
+        raise AccessForbidden
     raise AccessUnauthorized
 
 

@@ -15,5 +15,6 @@ KEY_AUTH_401_TEMPLATE = {
 KEY_AUTH_403_TEMPLATE = {
     "template_name": "403.html"
 }
+KEY_TYPES = ( ('S', 'server'), ('B', 'browser'), ('M', 'mobile') )
 
 from .settings import *

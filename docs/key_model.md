@@ -35,6 +35,10 @@ The date from which the key will no longer be valid (by default, one year after 
 
 The datetime of the last access using the key, if `KEY_LAST_USED_UPDATE` set to `True` (default behavior).
 
+### key_type
+
+The type of the key. By default, is either Server or Browser.
+
 
 ## Methods
 
@@ -92,6 +96,14 @@ Replace `token` with a new generated one, according to a given pattern that defa
 
 ```python
 key.refresh_token(pattern='[0-9]{3,4}')
+```
+
+### is_type
+
+Find if key is of a given type.
+
+```python
+key.is_type('browser')
 ```
 
 
