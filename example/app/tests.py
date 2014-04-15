@@ -31,7 +31,7 @@ print "KEY_TYPE_CHOICES = ", KEY_TYPE_CHOICES
 
 MIDDLEWARE_CLASSES = getattr(settings, 'MIDDLEWARE_CLASSES') + (
     'keyauth.middleware.KeyRequiredMiddleware',
-    'keyauth.middleware.KeyAndRequestMatchMiddleware',
+    'keyauth.middleware.SuitableKeyMiddleware',
 )
 
 
@@ -110,23 +110,23 @@ class KeyAuthTest(TestCase):
         self.assertFalse( key.is_type('server') )
         self.assertTrue( key.is_type('browser') )
         
-    def test_match(self):
+    def test_is_suitable(self):
         request = RequestFactory().get('/key_required', HTTP_USER_AGENT='Mozilla/5.0')
         key  = Key.objects.create(user=self.user, key_type='B')
-        self.assertTrue( key.match(request) )
+        self.assertTrue( key.is_suitable(request) )
         key  = Key.objects.create(user=self.user, key_type='S')
-        self.assertFalse( key.match(request) )
+        self.assertFalse( key.is_suitable(request) )
         if ('M', 'mobile') in KEY_TYPE_CHOICES:
             key  = Key.objects.create(user=self.user, key_type='M')
-            self.assertFalse( key.match(request) )
+            self.assertFalse( key.is_suitable(request) )
         request = RequestFactory().get('/key_required')
         key  = Key.objects.create(user=self.user, key_type='B')
-        self.assertFalse( key.match(request) )
+        self.assertFalse( key.is_suitable(request) )
         key  = Key.objects.create(user=self.user, key_type='S')
-        self.assertTrue( key.match(request) )
+        self.assertTrue( key.is_suitable(request) )
         if ('M', 'mobile') in KEY_TYPE_CHOICES:
             key  = Key.objects.create(user=self.user, key_type='M')
-            self.assertFalse( key.match(request) )
+            self.assertFalse( key.is_suitable(request) )
         
     #
     # TEST PERMISSIONS
@@ -278,7 +278,7 @@ class KeyAuthTest(TestCase):
         self.assertStatus( '/no_key_required', 401 )  
 
     @override_settings(MIDDLEWARE_CLASSES=MIDDLEWARE_CLASSES)
-    def test_KeyAndRequestMatchMiddleware(self):
+    def test_SuitableKeyMiddleware(self):
         self.assertStatus( '/key_required', 401 )        
         key  = Key.objects.create(user=self.user, key_type='S')
         self.assertStatus( '/key_required', 200, {KEY_PARAMETER_NAME: key.token} )
