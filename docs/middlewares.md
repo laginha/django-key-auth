@@ -27,3 +27,15 @@ MIDDLEWARE_CLASSES = (
     'keyauth.middleware.KeyRequiredMiddleware',
 )
 ```
+
+## SuitableKeyMiddleware
+
+Add this middleware to check if given key is suitable according to its type and request's user agent.
+
+```python
+MIDDLEWARE_CLASSES = (
+    ...
+    'keyauth.middleware.KeyRequiredMiddleware',
+    'keyauth.middleware.SuitableKeyMiddleware',
+)
+```

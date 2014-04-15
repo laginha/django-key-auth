@@ -89,10 +89,27 @@ Update `last_used` model attribute for the given key. Defaults to `True`.
 KEY_LAST_USED_UPDATE = False
 ```
 
-### KEY_TYPES
+### KEY_TYPE\_CHOICES
 
 The choices for the type of key. Default to `(('S', 'server'), ('B', 'browser'))`.
 
 ```python
-KEY_TYPES = (('M', 'Mobile'), ('S', 'server'), ('B', 'browser'))
+KEY_TYPE_CHOICES = (('M', 'Mobile'), ('S', 'server'), ('B', 'browser'))
 ````
+
+## KEY_TYPE\_VALIDATIONS
+
+Dictionary of validations for each type in `KEY_TYPE_CHOICES`. These are used to obtain the key suitability for a given request.
+
+```python
+from django_mobileesp.utils import is_browser_agent, is_mobile_agent
+from django_mobileesp.utils import is_tablet_agent, is_smartphone_agent
+
+KEY_TYPE_VALIDATIONS  = {
+    'browser':    lambda request: is_browser_agent( request ),
+    'server':     lambda request: not is_browser_agent( request ),
+    'mobile':     lambda request: is_mobile_agent( request ),
+    'tablet':     lambda request: is_tablet_agent( request ),
+    'smartphone': lambda request: is_smartphone_agent( request ),
+}
+```

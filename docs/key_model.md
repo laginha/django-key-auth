@@ -100,10 +100,26 @@ key.refresh_token(pattern='[0-9]{3,4}')
 
 ### is_type
 
-Find if key is of a given type.
+Checks if key is of a given type.
 
 ```python
 key.is_type('browser')
+```
+
+### get_type
+
+Get the type name of key
+
+```python
+key.get_type()
+```
+
+### is_suitable
+
+Checks if key is suitable for given request according to key type and request's user agent.
+
+```python
+key.is_suitable( request )
 ```
 
 

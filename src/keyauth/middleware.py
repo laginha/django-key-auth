@@ -26,3 +26,14 @@ class KeyAuthenticationMiddleware(object):
     def process_request(self, request): 
         request.key  = SimpleLazyObject(lambda: get_key(request))
         request.user = SimpleLazyObject(lambda: request.key.user if request.key else AnonymousUser())
+
+
+class SuitableKeyMiddleware(object):
+    """
+    Middleware to Checks if request.key is suitable for the request 
+    according to key type and request's user agent.
+    """
+    def process_request(self, request): 
+        if request.key and not request.key.is_suitable( request ):
+            return HttpResponse403( request )
+        

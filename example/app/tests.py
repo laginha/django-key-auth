@@ -12,7 +12,7 @@ from django.conf import settings
 from keyauth.models import Key, Consumer
 from keyauth.consts import KEY_AUTH_401_CONTENT, KEY_EXPIRATION_DELTA, KEY_AUTH_401_CONTENT_TYPE
 from keyauth.consts import KEY_PARAMETER_NAME, KEY_PATTERN, KEY_AUTH_401_TEMPLATE, KEY_LAST_USED_UPDATE
-from keyauth.consts import KEY_AUTH_403_CONTENT, KEY_AUTH_403_CONTENT_TYPE, KEY_AUTH_403_TEMPLATE, KEY_TYPES
+from keyauth.consts import KEY_AUTH_403_CONTENT, KEY_AUTH_403_CONTENT_TYPE, KEY_AUTH_403_TEMPLATE, KEY_TYPE_CHOICES
 
 
 print "Settings:"
@@ -26,11 +26,12 @@ print "KEY_AUTH_401_TEMPLATE =", KEY_AUTH_401_TEMPLATE
 print "KEY_AUTH_403_CONTENT =", KEY_AUTH_403_CONTENT
 print "KEY_AUTH_403_CONTENT_TYPE =", KEY_AUTH_403_CONTENT_TYPE
 print "KEY_AUTH_403_TEMPLATE =", KEY_AUTH_403_TEMPLATE
-print "KEY_TYPES = ", KEY_TYPES
+print "KEY_TYPE_CHOICES = ", KEY_TYPE_CHOICES
 
 
 MIDDLEWARE_CLASSES = getattr(settings, 'MIDDLEWARE_CLASSES') + (
     'keyauth.middleware.KeyRequiredMiddleware',
+    'keyauth.middleware.KeyAndRequestMatchMiddleware',
 )
 
 
@@ -108,7 +109,25 @@ class KeyAuthTest(TestCase):
         key  = Key.objects.create(user=self.user, key_type='B')
         self.assertFalse( key.is_type('server') )
         self.assertTrue( key.is_type('browser') )
-  
+        
+    def test_match(self):
+        request = RequestFactory().get('/key_required', HTTP_USER_AGENT='Mozilla/5.0')
+        key  = Key.objects.create(user=self.user, key_type='B')
+        self.assertTrue( key.match(request) )
+        key  = Key.objects.create(user=self.user, key_type='S')
+        self.assertFalse( key.match(request) )
+        if ('M', 'mobile') in KEY_TYPE_CHOICES:
+            key  = Key.objects.create(user=self.user, key_type='M')
+            self.assertFalse( key.match(request) )
+        request = RequestFactory().get('/key_required')
+        key  = Key.objects.create(user=self.user, key_type='B')
+        self.assertFalse( key.match(request) )
+        key  = Key.objects.create(user=self.user, key_type='S')
+        self.assertTrue( key.match(request) )
+        if ('M', 'mobile') in KEY_TYPE_CHOICES:
+            key  = Key.objects.create(user=self.user, key_type='M')
+            self.assertFalse( key.match(request) )
+        
     #
     # TEST PERMISSIONS
     #
@@ -248,8 +267,8 @@ class KeyAuthTest(TestCase):
             self.assertEqual( key.activation_date, key.last_used.date() )
             self.assertEqual( last_used, key.last_used )
             
-    def test_KEY_TYPES(self):
-        for typechar,typename in KEY_TYPES:
+    def test_KEY_TYPE_CHOICES(self):
+        for typechar,typename in KEY_TYPE_CHOICES:
             self.key.is_type( typename )
     
     @override_settings(MIDDLEWARE_CLASSES=MIDDLEWARE_CLASSES)
@@ -257,3 +276,12 @@ class KeyAuthTest(TestCase):
         self.assertStatus( '/key_required', 401 )
         self.assertStatus( '/key_required', 200, {KEY_PARAMETER_NAME: self.key.token} )
         self.assertStatus( '/no_key_required', 401 )  
+
+    @override_settings(MIDDLEWARE_CLASSES=MIDDLEWARE_CLASSES)
+    def test_KeyAndRequestMatchMiddleware(self):
+        self.assertStatus( '/key_required', 401 )        
+        key  = Key.objects.create(user=self.user, key_type='S')
+        self.assertStatus( '/key_required', 200, {KEY_PARAMETER_NAME: key.token} )
+        key  = Key.objects.create(user=self.user, key_type='B')
+        self.assertStatus( '/key_required', 403, {KEY_PARAMETER_NAME: key.token} )
+        

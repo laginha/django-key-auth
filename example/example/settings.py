@@ -102,7 +102,6 @@ MIDDLEWARE_CLASSES = (
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
     # Key Auth Middlewares
     'keyauth.middleware.KeyAuthenticationMiddleware',
-    'django_user_agents.middleware.UserAgentMiddleware',
 )
 
 AUTHENTICATION_BACKENDS = (

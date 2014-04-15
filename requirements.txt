@@ -1,3 +1,4 @@
 django
 rstr
 django-model-utils
+git+https://github.com/laginha/django-mobileesp/

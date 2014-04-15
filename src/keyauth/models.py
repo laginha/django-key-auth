@@ -2,7 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User, Group, Permission
 from django.conf import settings
 from model_utils.managers import PassThroughManager
-from .consts import KEY_EXPIRATION_DELTA, KEY_PATTERN, KEY_TYPES
+from .consts import KEY_EXPIRATION_DELTA, KEY_PATTERN, KEY_TYPE_CHOICES, KEY_TYPE_VALIDATIONS
 from .managers import ConsumerQuerySet, KeyQuerySet
 import datetime, rstr
 
@@ -39,14 +39,31 @@ class Key(models.Model):
     # The last time the key was used to access a resource.
     last_used       = models.DateTimeField(auto_now=True)
     # Type of key (by default, is either Server ou Browser)
-    key_type        = models.CharField(max_length=1, choices=KEY_TYPES)
+    KEY_TYPE_CHOICES = KEY_TYPE_CHOICES
+    key_type         = models.CharField(max_length=1, choices=KEY_TYPE_CHOICES)
+    
+    def get_type(self):
+        """
+        Get the type name of key
+        """
+        for typechar, typename in self.KEY_TYPE_CHOICES:
+            if typechar == self.key_type:
+                return typename
+    
+    def is_suitable(self, request):
+        """
+        Checks if key is suitable for given request according to key type and request's user agent.
+        """
+        if self.key_type:
+            validation = KEY_TYPE_VALIDATIONS.get( self.get_type() )
+            return validation( request ) if validation else None
+        return True
     
     def is_type(self, typename):
-        def get_typechar(name):
-            for a,b in KEY_TYPES:
-                if b==name: return a
-        
-        return get_typechar( typename ) == self.key_type
+        """
+        Checks if key is of a given type.
+        """
+        return self.get_type() == typename
     
     def has_expired(self):
         """
