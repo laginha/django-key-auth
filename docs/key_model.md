@@ -37,7 +37,7 @@ The datetime of the last access using the key, if `KEY_LAST_USED_UPDATE` set to 
 
 ### key_type
 
-The type of the key. By default, is either Server or Browser.
+The type of the key. By default is `None`, which means the key is a generic type. The allowed choices are specified by the `KEY_TYPE_CHOICES` setting.
 
 
 ## Methods
