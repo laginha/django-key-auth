@@ -6,8 +6,8 @@ install_reqs = parse_requirements("requirements.txt")
 reqs = [str(each.req) for each in install_reqs if each.req]
 
 setup(
-    name             = 'django-keyauth',
-    version          = '1.0.0',
+    name             = 'django-key-auth',
+    version          = '1.1.0',
     author           = "Diogo Laginha",
     author_email     = "diogo.laginha.machado@gmail.com",
     url              = 'https://github.com/laginha/django-key-auth',
