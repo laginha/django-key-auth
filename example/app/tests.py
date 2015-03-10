@@ -70,7 +70,7 @@ class KeyAuthTest(TestCase):
     #
 
     def test_expired_token(self):
-        self.key.extend_expiration_date(years=-KEY_EXPIRATION_DELTA-1)
+        self.key.extend_expiration_date(days=-KEY_EXPIRATION_DELTA-1)
         self.assertStatus( '/key_required', 401 )
         self.assertStatus( '/key_required', 401, {KEY_PARAMETER_NAME: self.key.token} )
         self.assertStatus( '/no_key_required', 200 )
@@ -78,9 +78,9 @@ class KeyAuthTest(TestCase):
     def test_extend_expiration_date(self):
         exp_date = self.key.expiration_date
         for i in range(1, 5):
-            self.key.extend_expiration_date(years=1)
+            self.key.extend_expiration_date(days=1)
             delta = self.key.expiration_date - exp_date
-            self.assertEqual( delta.days, i*365 )
+            self.assertEqual( delta.days, i )
         
     def test_refresh_token(self):
         token = self.key.token
@@ -183,7 +183,7 @@ class KeyAuthTest(TestCase):
         keys = Key.objects.not_expired()
         self.assertTrue( keys.count() )
         self.assertTrue( all(not i.has_expired() for i in keys) )
-        self.key.extend_expiration_date(years=-100)
+        self.key.extend_expiration_date(days=-1000)
         self.key.save()
         keys = Key.objects.expired()
         self.assertTrue( keys.count() )
@@ -244,7 +244,7 @@ class KeyAuthTest(TestCase):
         self.assertEqual( response.status_code, 403 )
     
     def test_KEY_EXPIRATION_DELTA(self):
-        delta = (self.key.expiration_date - self.key.activation_date).days /365
+        delta = (self.key.expiration_date - self.key.activation_date).days
         self.assertEqual( delta, KEY_EXPIRATION_DELTA ) 
                 
     def test_KEY_PATTERN(self):

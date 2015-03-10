@@ -14,7 +14,7 @@ def view(request):
 
 ## Install
 
-    pip install git+https://github.com/laginha/django-key-auth/
+    pip install django-key-auth
 
 
 ## Features

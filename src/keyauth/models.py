@@ -6,14 +6,15 @@ from .consts import KEY_EXPIRATION_DELTA, KEY_PATTERN, KEY_TYPE_CHOICES, KEY_TYP
 from .managers import ConsumerQuerySet, KeyQuerySet
 import datetime, rstr
 
-def timedelta_years(years):
-    return datetime.timedelta(days=365*years)
-    
-def years_from_now(num=KEY_EXPIRATION_DELTA):
+
+def timedelta_days(days):
+    return datetime.timedelta(days=days)
+
+def days_from_now(num=KEY_EXPIRATION_DELTA):
     today = datetime.datetime.today()
-    delta = timedelta_years(num)
+    delta = timedelta_days(num)
     return (today + delta).date()
-    
+
 def generate_token(pattern=KEY_PATTERN):
     return rstr.xeger( pattern )
     
@@ -35,7 +36,7 @@ class Key(models.Model):
     # The date of creation of the key.
     activation_date = models.DateField(auto_now_add=True)
     # The date from which the key will no longer be valid (by default, one year after creation).
-    expiration_date = models.DateField(default=years_from_now)
+    expiration_date = models.DateField(default=days_from_now)
     # The last time the key was used to access a resource.
     last_used       = models.DateTimeField(auto_now=True)
     # Type of key (by default, is either Server ou Browser)
@@ -71,11 +72,11 @@ class Key(models.Model):
         """
         return datetime.date.today() > self.expiration_date
     
-    def extend_expiration_date(self, years=1):
+    def extend_expiration_date(self, days=KEY_EXPIRATION_DELTA):
         """
         Extend expiration date a number of given years
         """
-        delta = timedelta_years(years)
+        delta = timedelta_days(days)
         self.expiration_date = self.expiration_date + delta
         self.save()
         

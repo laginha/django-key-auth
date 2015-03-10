@@ -67,10 +67,10 @@ KEY_AUTH_403_CONTENT_TYPE = 'application/json; charset=utf-8' #JSON
 
 ### KEY\_EXPIRATION_DELTA
 
-The number of years between the activation date and the expiration date of a key token. Defaults to `1`.
+The number of days between the activation date and the expiration date of a key token. Defaults to `365`.
 
 ```python
-KEY_EXPIRATION_DELTA = 2
+KEY_EXPIRATION_DELTA = 30
 ```
 
 ### KEY_PATTERN   

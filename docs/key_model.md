@@ -84,10 +84,10 @@ key.get_consumers() #the same as key.consumers.all()
 
 ### extend_expiration\_date
 
-Extend expiration date a number of given years (defaults to 1).
+Extend expiration date a number of given days (defaults to `KEY_EXPIRATION_DELTA`).
 
 ```python
-key.extend_expiration_date(years=1)
+key.extend_expiration_date(days=1)
 ```
 
 ### refresh_token

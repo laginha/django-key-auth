@@ -7,7 +7,7 @@ from django_mobileesp.utils import is_browser_agent, is_mobile_agent, is_tablet_
 DEFAULT VALUES
 '''
 DEFAULT_KEY_LAST_USED_UPDATE  = True
-DEFAULT_KEY_EXPIRATION_DELTA  = 1
+DEFAULT_KEY_EXPIRATION_DELTA  = 365
 DEFAULT_KEY_PATTERN           = r"[a-z0-9A-Z]{30,40}"
 DEFAULT_KEY_PARAMATER_NAME    = 'key'
 DEFAULT_KEY_AUTH_401_TEMPLATE = DEFAULT_KEY_AUTH_403_TEMPLATE = None
