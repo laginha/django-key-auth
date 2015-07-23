@@ -24,7 +24,7 @@ class Key(models.Model):
     Key for resource/view access and authentication
     """
     # QuerySet Manager
-    objects = PassThroughManager.for_queryset_class(KeyQuerySet)()
+    objects = KeyQuerySet.as_manager()
     # M2M relation to django's auth.Groups
     groups          = models.ManyToManyField(Group)
     # M2M relation to django's auth.Permission
@@ -137,11 +137,11 @@ class Consumer(models.Model):
     Web client allowed (or not) to use a key
     """
     # QuerySet Manager
-    objects = PassThroughManager.for_queryset_class(ConsumerQuerySet)()
+    objects = ConsumerQuerySet.as_manager()
     # Foreign key to keyauth.Key
     key     = models.ForeignKey(Key, related_name="consumers")
     # The *IP* address of the consumer.
-    ip      = models.IPAddressField(blank=True)
+    ip      = models.GenericIPAddressField()
     # If the consumer is allowed or not to use the key token (defaults to *True*).
     allowed = models.BooleanField(default=True)
 

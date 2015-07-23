@@ -2,7 +2,7 @@ from django.db import models
 from datetime import date
 
 
-class KeyQuerySet(models.query.QuerySet):
+class KeyQuerySet(models.QuerySet):
     
     def expired(self):
         return self.filter(expiration_date__lt=date.today())
@@ -11,7 +11,7 @@ class KeyQuerySet(models.query.QuerySet):
         return self.filter(expiration_date__gte=date.today())
         
 
-class ConsumerQuerySet(models.query.QuerySet):
+class ConsumerQuerySet(models.QuerySet):
     
     def allowed(self):
         return self.filter(allowed=True)
