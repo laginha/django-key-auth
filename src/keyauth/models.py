@@ -1,7 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User, Group, Permission
 from django.conf import settings
-from model_utils.managers import PassThroughManager
 from .consts import KEY_EXPIRATION_DELTA, KEY_PATTERN, KEY_TYPE_CHOICES, KEY_TYPE_VALIDATIONS
 from .managers import ConsumerQuerySet, KeyQuerySet
 import datetime, rstr
